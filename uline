@@ -1,0 +1,154 @@
+[ -z "$ULINE_PROMPT_ITEMS" ] &&
+	ULINE_PROMPT_ITEMS=(last jobs hostname_if_ssh username pwd readonlydir vcs ruby prompt_terminator)
+
+uline() {
+	_uline_last_code=$?
+
+	PROMPT=$(
+	for item in ${ULINE_PROMPT_ITEMS[@]}
+	do
+		_uline_$item
+	done
+	_uline_resetcolor
+	)
+	PS1=$PROMPT
+}
+
+_uline_hostname_if_ssh() {
+	if [ -n "$SSH_TTY" ]
+	then
+		_uline_setcolor 254 166
+		echo -n " $(hostname) "
+	fi
+}
+
+_uline_username() {
+	if [ "x$USER" = "xroot" ]
+	then
+		_uline_setcolor 254 124
+	else
+		_uline_setcolor 254 33
+	fi
+	echo -n " $USER "
+}
+
+_uline_pwd() {
+	local delim=" $(_uline_setcolor 244)$(_uline_setcolor 250) "
+	_uline_setcolor 250 237
+	case "$PWD" in
+		/)
+			echo -n " / "
+			;;
+		$HOME/*|$HOME)
+			echo -n " ~${${PWD#$HOME}//\//$delim} "
+			;;
+		*)
+			echo -n " /${PWD//\//$delim} "
+			;;
+	esac
+}
+
+_uline_jobs() {
+	_uline_setcolor 39 238
+	local stopped=$(jobs -sp | wc -l)
+	local running=$(jobs -rp | wc -l)
+
+	if (( running + stopped ))
+	then
+		echo -n " "
+		(( running )) &&
+			echo -n r$running
+		(( stopped )) &&
+			echo -n s$stopped
+		echo -n " "
+	fi
+}
+
+_uline_last() {
+	if [ $_uline_last_code -ne 0 ]
+	then
+		_uline_setcolor 15 124
+		echo -n " $_uline_last_code "
+	fi
+}
+
+_uline_prompt_terminator() {
+	_uline_resetcolor
+	[ -n "$_uline_lastbgcolor" ] &&
+		_uline_setcolor $_uline_lastbgcolor
+	echo -n ""
+}
+
+_uline_readonlydir() {
+	if [ ! -w "$PWD" ]
+	then
+		_uline_setcolor 254 124
+		echo -n " 🔓 "
+	fi
+}
+
+_uline_vcs() {
+	local branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+	if [ -n "$branch" ]
+	then
+		local str=""
+		local ss="$(git status --porcelain 2>/dev/null)"
+		if [ -n "$ss" ]
+		then
+			local staged=$(echo "$ss" | grep '^\([MARC][ MD]\|D[ M]\)' | wc -l)
+			local unstaged=$(echo "$ss" | grep '^[ MARC][MD]' | wc -l)
+			local untracked=$(echo "$ss" | grep '^??' | wc -l)
+			local unmerged=$(echo "$ss" | grep '^\(D[DU]\|A[UA]\|U[DAU]\)' | wc -l)
+			[ $staged -gt 0 ] && str+="s$staged"
+			[ $unstaged -gt 0 ] && str+="c$unstaged"
+			[ $unmerged -gt 0 ] && str+="x$unmerged"
+			[ $untracked -gt 0 ] && str+="u$untracked"
+		fi
+
+		_uline_setcolor 234 33
+		echo -n " $branch"
+		if [ -n "$str" ]
+		then
+			_uline_setcolor 254
+			echo -n "($str)"
+		fi
+		echo -n " "
+	fi
+}
+
+_uline_ruby() {
+	local script='print "#{RUBY_VERSION}:#{RUBY_PATCHLEVEL rescue -1}:#{RUBY_REVISION rescue -1}"'
+	local vstring=$(ruby --disable-gems -e"$script" 2>/dev/null)
+
+	if [ -n "$vstring" ]
+	then
+		_uline_setcolor 250 238
+
+		case "$vstring" in
+			*:-1:*)
+				# dev
+				echo -n " r${vstring##*:} "
+				;;
+			*)
+				# rel
+				local tmp=${vstring%:*}
+				echo -n " ${tmp/:/p} "
+				;;
+		esac
+	fi
+}
+
+_uline_setcolor() {
+	_uline_lastfgcolor=$1
+	echo -n $'%{\e[38;5;'$1'm%}'
+
+	if [ -n "$2" ]
+	then
+		_uline_lastbgcolor=$2
+		echo -n $'%{\e[48;5;'$2'm%}'
+	fi
+}
+
+_uline_resetcolor() {
+	echo -n $'%{\e[0m%}'
+}
