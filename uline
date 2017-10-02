@@ -124,6 +124,11 @@ _uline_ruby() {
 	then
 		_uline_setcolor 250 238
 
+		if [ -n "$SWRUBY_VERSION" ]
+		then
+			echo -n " ($SWRUBY_VERSION)"
+		fi
+
 		case "$vstring" in
 			*:-1:*)
 				# dev
