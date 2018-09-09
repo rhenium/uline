@@ -17,7 +17,7 @@ uline() {
 _uline_hostname_if_ssh() {
 	if [ -n "$SSH_TTY" ]
 	then
-		_uline_setcolor 254 166
+		_uline_setcolor 88 208 bold
 		echo -n " $(hostname) "
 	fi
 }
@@ -25,9 +25,9 @@ _uline_hostname_if_ssh() {
 _uline_username() {
 	if [ "x$USER" = "xroot" ]
 	then
-		_uline_setcolor 254 124
+		_uline_setcolor 231 124
 	else
-		_uline_setcolor 254 33
+		_uline_setcolor 231 33
 	fi
 	echo -n " $USER "
 }
@@ -72,7 +72,7 @@ _uline_last() {
 }
 
 _uline_prompt_terminator() {
-	_uline_setcolor 250 236
+	_uline_setcolor 250 240
 	if [ "x$USER" = "xroot" ]
 	then
 		echo -n " # "
@@ -109,11 +109,11 @@ _uline_vcs() {
 			[ $untracked -gt 0 ] && str+="u$untracked"
 		fi
 
-		_uline_setcolor 234 33
+		_uline_setcolor 237 33
 		echo -n " $branch"
 		if [ -n "$str" ]
 		then
-			_uline_setcolor 254
+			_uline_setcolor 237 33
 			echo -n "($str)"
 		fi
 		echo -n " "
@@ -126,11 +126,11 @@ _uline_ruby() {
 
 	if [ -n "$vstring" ]
 	then
-		_uline_setcolor 250 238
+		_uline_setcolor 250 237
 
 		if [ -n "$SWRUBY_VERSION" ]
 		then
-			echo -n " ($SWRUBY_VERSION)"
+			echo -n " [$SWRUBY_VERSION]"
 		fi
 
 		case "$vstring" in
@@ -148,14 +148,17 @@ _uline_ruby() {
 }
 
 _uline_setcolor() {
+	if [ "x$3" = "xbold" ]
+	then
+		echo -n $'%{\e[1m%}'
+	else
+		echo -n $'%{\e[0m%}'
+	fi
+
 	_uline_lastfgcolor=$1
 	echo -n $'%{\e[38;5;'$1'm%}'
-
-	if [ -n "$2" ]
-	then
-		_uline_lastbgcolor=$2
-		echo -n $'%{\e[48;5;'$2'm%}'
-	fi
+	_uline_lastbgcolor=$2
+	echo -n $'%{\e[48;5;'$2'm%}'
 }
 
 _uline_resetcolor() {
