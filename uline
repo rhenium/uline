@@ -1,17 +1,25 @@
 [ -z "$ULINE_PROMPT_ITEMS" ] &&
-	ULINE_PROMPT_ITEMS=(last jobs hostname_if_ssh username pwd readonlydir vcs ruby prompt_terminator)
+	ULINE_PROMPT_ITEMS=(last jobs hostname_if_ssh username pwd readonlydir prompt_terminator)
+[ -z "$ULINE_RPROMPT_ITEMS" ] &&
+	ULINE_RPROMPT_ITEMS=(vcs ruby)
 
 uline() {
 	_uline_last_code=$?
 
 	PROMPT=$(
-	for item in ${ULINE_PROMPT_ITEMS[@]}
-	do
-		_uline_$item
-	done
-	_uline_resetcolor
+		for item in ${ULINE_PROMPT_ITEMS[@]}
+		do
+			_uline_$item
+		done
+		_uline_resetcolor
 	)
-	PS1=$PROMPT
+	RPROMPT=$(
+		for item in ${ULINE_RPROMPT_ITEMS[@]}
+		do
+			_uline_$item
+		done
+		_uline_resetcolor
+	)
 }
 
 _uline_hostname_if_ssh() {
