@@ -33,17 +33,16 @@ _uline_username() {
 }
 
 _uline_pwd() {
-	local delim=" $(_uline_setcolor 244)$(_uline_setcolor 250) "
 	_uline_setcolor 250 237
 	case "$PWD" in
 		/)
 			echo -n " / "
 			;;
 		$HOME/*|$HOME)
-			echo -n " ~${${PWD#$HOME}//\//$delim} "
+			echo -n " ~${PWD#$HOME} "
 			;;
 		*)
-			echo -n " /${PWD//\//$delim} "
+			echo -n " $PWD "
 			;;
 	esac
 }
@@ -73,17 +72,22 @@ _uline_last() {
 }
 
 _uline_prompt_terminator() {
+	_uline_setcolor 250 236
+	if [ "x$USER" = "xroot" ]
+	then
+		echo -n " # "
+	else
+		echo -n " \$ "
+	fi
 	_uline_resetcolor
-	[ -n "$_uline_lastbgcolor" ] &&
-		_uline_setcolor $_uline_lastbgcolor
-	echo -n ""
+	echo -n " "
 }
 
 _uline_readonlydir() {
 	if [ ! -w "$PWD" ]
 	then
 		_uline_setcolor 254 124
-		echo -n " 🔓 "
+		echo -n " 🔒 "
 	fi
 }
 
