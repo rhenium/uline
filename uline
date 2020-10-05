@@ -1,7 +1,7 @@
 [ -z "$ULINE_PROMPT_ITEMS" ] &&
 	ULINE_PROMPT_ITEMS=(last jobs hostname_if_ssh username pwd readonlydir prompt_terminator)
 [ -z "$ULINE_RPROMPT_ITEMS" ] &&
-	ULINE_RPROMPT_ITEMS=(vcs ruby)
+	ULINE_RPROMPT_ITEMS=(vcs ruby date)
 
 uline() {
 	_uline_last_code=$?
@@ -153,6 +153,11 @@ _uline_ruby() {
 				;;
 		esac
 	fi
+}
+
+_uline_date() {
+	_uline_setcolor 250 240
+	echo -n " $(date '+%Y-%m-%d %H:%M:%S') "
 }
 
 _uline_setcolor() {
